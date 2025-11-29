@@ -1,7 +1,7 @@
 
 const SpinPage = () => {
   return (
-    <div>SpinPage</div>
+    <div>SpinPage wheel </div>
   )
 }
 
