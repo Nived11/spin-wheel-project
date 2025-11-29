@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
-import SpinPage from "../Pages/SpinPage/SpinPage";
-import InvalidPage from "../Pages/InvalidPages/InvalidPage";
-import DemoForm from "../Pages/DemoForm/DemoForm";
+import SpinPage from "../Pages/SpinPage";
+import InvalidPage from "../Pages/InvalidPage";
+import DemoForm from "../Pages/DemoForm";
 
 
 const AppRoutes = () => (
