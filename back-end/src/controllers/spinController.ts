@@ -18,7 +18,6 @@ const prizes = [
 export const createUID = async (req: Request, res: Response) => {
   const { name, phone, occasion } = req.body;
 
-  // Has this phone already spun?
   const existingUser = await User.findOne({ phone });
   if (existingUser) {
     const existingSpin = await Spin.findOne({ uid: existingUser.uid });
@@ -30,7 +29,8 @@ export const createUID = async (req: Request, res: Response) => {
   const uid = "EMP-" + uuidv4().slice(0, 6).toUpperCase();
   await User.create({ uid, name, phone, occasion });
 
-  const link = `http://localhost:4000/spin/?uid=${uid}`;
+  const link = `${process.env.FRONTEND_URL}/spin?uid=${uid}`;
+
   res.json({ uid, link });
 };
 
