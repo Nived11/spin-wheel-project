@@ -15,8 +15,29 @@ const prizes = [
 
 
 // Create unique UID
+// Create unique UID
 export const createUID = async (req: Request, res: Response) => {
-  const { name, phone, occasion } = req.body;
+  const { name, phone, dobOrAnniversary } = req.body;
+
+  // simple validations
+  if (!name || name.trim().length < 3) {
+    return res.status(400).json({ msg: "Name must be at least 3 characters" });
+  }
+
+  if (!phone || !/^\d{10}$/.test(phone)) {
+    return res.status(400).json({ msg: "Phone must be 10 digits" });
+  }
+
+  // Validate date
+  if (!dobOrAnniversary || !dobOrAnniversary.includes(":")) {
+    return res.status(400).json({ msg: "Date is required" });
+  }
+
+  const [selectedType, selectedDate] = dobOrAnniversary.split(":");
+
+  if (!selectedDate || selectedDate.trim() === "") {
+    return res.status(400).json({ msg: "Date is required" });
+  }
 
   const existingUser = await User.findOne({ phone });
   if (existingUser) {
@@ -27,12 +48,12 @@ export const createUID = async (req: Request, res: Response) => {
   }
 
   const uid = "EMP-" + uuidv4().slice(0, 6).toUpperCase();
-  await User.create({ uid, name, phone, occasion });
+  await User.create({ uid, name, phone, dobOrAnniversary });
 
   const link = `${process.env.FRONTEND_URL}/spin?uid=${uid}`;
-
   res.json({ uid, link });
 };
+
 
 
 // Validate UID

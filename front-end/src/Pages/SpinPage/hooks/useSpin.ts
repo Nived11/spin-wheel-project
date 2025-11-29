@@ -37,14 +37,17 @@ export const useSpin = () => {
     validate();
   }, [searchParams, navigate]);
 
-  const handleSpin = async () => {
-  if (!uid || spinning || prize) return;
+const handleSpin = async () => {
+  if (!uid || spinning || prize) return null;
   setSpinning(true);
   try {
     const res = await api.post("/spin", { uid });
-    setPrize(res.data.prize);
+    const p = res.data.prize as string;
+    setPrize(p);
+    return p; // important for wheel animation
   } catch (e) {
     alert("Something went wrong or you already spun.");
+    return null;
   } finally {
     setSpinning(false);
   }
