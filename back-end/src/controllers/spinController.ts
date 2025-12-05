@@ -13,8 +13,6 @@ const prizes = [
 ];
 
 
-
-// Create unique UID
 // Create unique UID
 export const createUID = async (req: Request, res: Response) => {
   const { name, phone, dobOrAnniversary } = req.body;

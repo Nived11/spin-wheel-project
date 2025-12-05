@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "../api/axios";
+import api from "../../utils/axios";
 import { Sparkles, Gift, Calendar, Phone, User, X, CheckCircle } from "lucide-react";
 
 const DemoForm = () => {
@@ -22,10 +22,10 @@ const DemoForm = () => {
       const dobOrAnniversary = `${type}:${dob}`;
       const res = await api.post("/create-uid", { name, phone, dobOrAnniversary });
       setLink(res.data.link);
-      setShowPopup(true); 
+      setShowPopup(true);
     } catch (err: any) {
       const msg = err?.response?.data?.msg || "Failed to create link";
-      setError(msg); 
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -190,21 +190,21 @@ const DemoForm = () => {
               </div>
 
               <div className="flex gap-3">
-  <a
-    href={link}
-    target="_blank"
-    rel="noreferrer"
-    className="flex-1 px-4 py-3 bg-linear-to-br from-amber-800 via-amber-900 to-slate-800 text-white rounded-lg font-semibold hover:bg-amber-900 transition-colors text-center cursor-pointer"
-  >
-    Open Link
-  </a>
-  <button
-    onClick={closePopup}
-    className="flex-1 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors cursor-pointer"
-  >
-    Close
-  </button>
-</div>
+                <a
+                  href={link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 px-4 py-3 bg-linear-to-br from-amber-800 via-amber-900 to-slate-800 text-white rounded-lg font-semibold hover:bg-amber-900 transition-colors text-center cursor-pointer"
+                >
+                  Open Link
+                </a>
+                <button
+                  onClick={closePopup}
+                  className="flex-1 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
 
             </div>
 

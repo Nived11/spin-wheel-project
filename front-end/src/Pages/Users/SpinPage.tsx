@@ -1,4 +1,4 @@
-import { useSpin } from "../hooks/useSpin";
+import { useSpin } from "../../hooks/Users/useSpin";
 import { useState } from "react";
 import { ClipLoader } from "react-spinners";
 
@@ -11,7 +11,6 @@ const segments = [
   "Better Luck Next Time",
 ];
 
-// Classic red and yellow alternating colors like in the image
 const colors = ["#DC2626", "#FCD34D", "#DC2626", "#FCD34D", "#DC2626", "#FCD34D"];
 
 function getArc(i: number, total: number) {
@@ -40,7 +39,7 @@ const SpinPage = () => {
   if (loading)
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-amber-900 via-amber-950 to-slate-900 text-white">
-      <ClipLoader color="#facc15" size={50} />  {/* Yellow theme spinner */}
+      <ClipLoader color="#facc15" size={50} />  
       <p className="mt-4 text-lg">Validating link...</p>
     </div>
   );
@@ -85,16 +84,13 @@ const SpinPage = () => {
         Spin the Wheel!
       </h1>
 
-      {/* Wheel Container */}
       <div className="relative w-[320px] h-80 sm:w-[400px] sm:h-[400px] md:w-[500px] md:h-[500px] flex items-center justify-center mb-4 sm:mb-8 overflow-visible">
-        {/* Pointer at top center */}
         <div className="absolute z-30 left-1/2 top-3 -translate-x-1/2 w-0 h-0 
                         border-l-16 border-r-16 border-t-28
                         sm:border-l-20 sm:border-r-20 sm:top-5 sm:border-t-35
                         md:border-l-24 md:border-r-24 md:border-t-40
                         border-l-transparent border-r-transparent border-t-[#D97706] drop-shadow-2xl" />
 
-        {/* Wheel SVG with border directly on it */}
         <svg
           width="100%"
           height="100%"
@@ -105,7 +101,6 @@ const SpinPage = () => {
             transition: spinning || prize ? "transform 2.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)" : "none"
           }}
         >
-          {/* Golden/Yellow border circle INSIDE SVG */}
           <circle
             cx="250"
             cy="250"
@@ -115,7 +110,6 @@ const SpinPage = () => {
             strokeWidth="20"
           />
 
-          {/* Small decorative circles on border (like in image) */}
           {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) => {
             const angle = (i * 30) * (Math.PI / 180);
             const x = 250 + Math.cos(angle) * 240;
@@ -133,10 +127,8 @@ const SpinPage = () => {
             );
           })}
 
-          {/* Wheel segments */}
           {segments.map((label, i) => {
-            // Determine text color based on background
-            const textColor = i % 2 === 0 ? "#FCD34D" : "#DC2626"; // white for red, dark for yellow
+            const textColor = i % 2 === 0 ? "#FCD34D" : "#DC2626"; 
 
             return (
               <g key={i}>
@@ -163,13 +155,10 @@ const SpinPage = () => {
             );
           })}
 
-          {/* Center circle decoration */}
           <circle cx="250" cy="250" r="35" fill="#92400E" />
           <circle cx="250" cy="250" r="25" fill="#DC2626" stroke="#FCD34D" strokeWidth="3" />
         </svg>
 
-        {/* Center button - stays on top, doesn't rotate */}
-        {/* Center button */}
         <button
           onClick={onSpinClick}
           disabled={spinning || !!prize}
@@ -187,7 +176,6 @@ const SpinPage = () => {
 
       </div>
 
-      {/* Popup Modal */}
       {showPopup && prize && (
         <div className="fixed inset-0 backdrop-blur-sm bg-transparent flex items-center justify-center z-50 p-4">
           <div className={`bg-white rounded-2xl p-6 sm:p-8 max-w-sm sm:max-w-md w-full text-center mx-4 shadow-2xl`}>
