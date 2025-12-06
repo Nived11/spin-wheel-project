@@ -1,4 +1,3 @@
-// Handles different error shapes from API or Axios
 export const extractErrorMessages = (err: any): string => {
   if (!err) return "Something went wrong";
 

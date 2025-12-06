@@ -1,39 +1,54 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-// Extend Express Request type to include user
+interface JwtPayload {
+  username: string;
+  role: string;
+}
+
 declare global {
   namespace Express {
     interface Request {
-      user?: any;
+      user?: JwtPayload;
     }
   }
 }
 
-export const verifyAdmin = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    console.log("No token provided or wrong format");
-    return res.status(401).json({ msg: "No token provided" });
-  }
-  
-  const token = authHeader.split(" ")[1];
-  
+// Verify any authenticated user (admin or superadmin)
+export const verifyAuth = (req: Request, res: Response, next: NextFunction) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-    // console.log("Token verified:", decoded);
-    
-    // Use req.user instead of req.body.admin
+    const token = req.header("Authorization")?.replace("Bearer ", "");
+
+    if (!token) {
+      return res.status(401).json({ msg: "No token, authorization denied" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
     req.user = decoded;
     next();
-  } catch (error: any) {
-    console.log("Token verification failed:", error.message);
-    
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ msg: "Token expired" });
+  } catch (error) {
+    res.status(401).json({ msg: "Token is not valid" });
+  }
+};
+
+// Verify super admin only
+export const verifySuperAdmin = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.header("Authorization")?.replace("Bearer ", "");
+
+    if (!token) {
+      return res.status(401).json({ msg: "No token, authorization denied" });
     }
-    
-    return res.status(401).json({ msg: "Invalid token" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+
+    if (decoded.role !== "superadmin") {
+      return res.status(403).json({ msg: "Access denied. Super admin only." });
+    }
+
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(401).json({ msg: "Token is not valid" });
   }
 };

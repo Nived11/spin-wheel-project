@@ -17,7 +17,8 @@ const DashboardHome = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Stats Cards - Same for both roles */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         
         <div className="bg-white p-6 rounded-xl shadow-lg">
           <div className="flex items-center justify-between">
@@ -68,13 +69,17 @@ const DashboardHome = () => {
         </div>
       </div>
 
+      {/* Prize Distribution - Same for both roles */}
       <div className="bg-white p-6 rounded-xl shadow-lg">
         <h3 className="text-xl font-bold mb-4">Prize Distribution</h3>
 
         {stats?.prizeStats?.length > 0 ? (
           <div className="space-y-3">
             {stats.prizeStats.map((prize: any) => (
-              <div key={prize._id} className="flex items-center justify-between border-b pb-2">
+              <div
+                key={prize._id}
+                className="flex items-center justify-between border-b pb-2"
+              >
                 <span className="font-medium">{prize._id}</span>
                 <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold">
                   {prize.count}
@@ -83,7 +88,9 @@ const DashboardHome = () => {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-4">No prize data available yet</p>
+          <p className="text-gray-500 text-center py-4">
+            No prize data available yet
+          </p>
         )}
       </div>
     </div>

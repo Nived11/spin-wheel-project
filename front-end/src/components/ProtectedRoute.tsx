@@ -1,16 +1,15 @@
 import { Navigate } from "react-router-dom";
-import { type ReactNode } from "react";
+import { isAuthenticated } from "../utils/roleCheck";
 
 interface ProtectedRouteProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const token = localStorage.getItem("adminToken");
-  
-  if (!token) {
+  if (!isAuthenticated()) {
     return <Navigate to="/admin/login" replace />;
   }
+
   return <>{children}</>;
 };
 

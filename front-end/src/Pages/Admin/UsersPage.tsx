@@ -1,4 +1,13 @@
-import { Search, Trash2, CheckCircle, Clock, ChevronLeft, ChevronRight, XCircle, Pencil,} from "lucide-react";
+import {
+  Search,
+  Trash2,
+  CheckCircle,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  XCircle,
+  Pencil,
+} from "lucide-react";
 import { useState } from "react";
 import UsersPageSkeleton from "../../components/skeltons/UsersPageSkeleton";
 import ConfirmationModal from "../../components/ConfirmationModal";
@@ -18,9 +27,9 @@ const UsersPage = () => {
     handleRedeem,
     handleDelete,
     actionLoading,
+    isSuper,
   } = useUsers();
 
-  // Modal states
   const [redeemModal, setRedeemModal] = useState<{ open: boolean; uid: string | null }>({
     open: false,
     uid: null,
@@ -35,19 +44,19 @@ const UsersPage = () => {
     return `${type === "birthday" ? "🎂" : "💍"} ${new Date(date).toLocaleDateString("en-IN")}`;
   };
 
- const confirmRedeem = async () => {
-  if (redeemModal.uid) {
-    await handleRedeem(redeemModal.uid);
-    setRedeemModal({ open: false, uid: null }); 
-  }
-};
+  const confirmRedeem = async () => {
+    if (redeemModal.uid) {
+      await handleRedeem(redeemModal.uid);
+      setRedeemModal({ open: false, uid: null });
+    }
+  };
 
-const confirmDelete = async () => {
-  if (deleteModal.uid) {
-    await handleDelete(deleteModal.uid);
-    setDeleteModal({ open: false, uid: null }); 
-  }
-};
+  const confirmDelete = async () => {
+    if (deleteModal.uid) {
+      await handleDelete(deleteModal.uid);
+      setDeleteModal({ open: false, uid: null });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -65,7 +74,7 @@ const confirmDelete = async () => {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by UID, Name, or Phone..."
+              placeholder={isSuper ? "Search by UID, Name, or Phone..." : "Search by UID or Name..."}
               className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
             />
           </div>
@@ -102,19 +111,25 @@ const confirmDelete = async () => {
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">UID</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Phone</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">DOB/Anniv.</th>
+                  {isSuper && (
+                    <>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Phone</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">DOB/Anniv.</th>
+                    </>
+                  )}
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Prize</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Status</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Redeem</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Delete</th>
+                  {isSuper && (
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Delete</th>
+                  )}
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-gray-200">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-10 text-center text-gray-500">
+                    <td colSpan={isSuper ? 8 : 5} className="py-10 text-center text-gray-500">
                       No users found.
                     </td>
                   </tr>
@@ -123,15 +138,19 @@ const confirmDelete = async () => {
                     const isBLNT = user.prize?.toLowerCase() === "better luck next time";
 
                     return (
-                      <tr key={user._id} className="hover:bg-gray-50">
+                      <tr key={user.uid} className="hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm font-mono text-blue-600 whitespace-nowrap">
                           {user.uid}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">{user.name}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{user.phone}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
-                          {formatDobOrAnniversary(user.dobOrAnniversary)}
-                        </td>
+                        {isSuper && (
+                          <>
+                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{user.phone}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                              {user.dobOrAnniversary && formatDobOrAnniversary(user.dobOrAnniversary)}
+                            </td>
+                          </>
+                        )}
                         <td className="px-4 py-3 text-sm font-semibold text-gray-700 whitespace-nowrap">
                           {!user.hasSpun ? "—" : isBLNT ? "Better Luck Next Time" : user.prize}
                         </td>
@@ -176,14 +195,16 @@ const confirmDelete = async () => {
                             </button>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-center">
-                          <button
-                            onClick={() => setDeleteModal({ open: true, uid: user.uid })}
-                            className="p-2 rounded-lg text-red-600 hover:bg-red-50 cursor-pointer"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
+                        {isSuper && (
+                          <td className="px-4 py-3 text-center">
+                            <button
+                              onClick={() => setDeleteModal({ open: true, uid: user.uid })}
+                              className="p-2 rounded-lg text-red-600 hover:bg-red-50 cursor-pointer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     );
                   })
@@ -236,16 +257,18 @@ const confirmDelete = async () => {
         loading={actionLoading}
       />
 
-      <ConfirmationModal
-        isOpen={deleteModal.open}
-        onClose={() => setDeleteModal({ open: false, uid: null })}
-        onConfirm={confirmDelete}
-        title="Delete User"
-        message="Are you sure you want to delete this user? This will permanently remove the user and all their data. This action cannot be undone."
-        confirmText="Delete User"
-        type="danger"
-        loading={actionLoading}
-      />
+      {isSuper && (
+        <ConfirmationModal
+          isOpen={deleteModal.open}
+          onClose={() => setDeleteModal({ open: false, uid: null })}
+          onConfirm={confirmDelete}
+          title="Delete User"
+          message="Are you sure you want to delete this user? This will permanently remove the user and all their data. This action cannot be undone."
+          confirmText="Delete User"
+          type="danger"
+          loading={actionLoading}
+        />
+      )}
     </div>
   );
 };

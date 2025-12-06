@@ -1,29 +1,32 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, LogOut, Menu, X, ShieldCheck } from "lucide-react";
+import { getUserRole, isSuperAdmin } from "../utils/roleCheck";
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
 }
 
 const SidebarLayout = ({ children }: SidebarLayoutProps) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false); 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const role = getUserRole();
 
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminRole");
     console.log("Logged out, redirecting to login");
     navigate("/admin/login", { replace: true });
   };
 
+  // Define menu items based on role
   const menuItems = [
-    { path: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { path: "/admin/users", icon: Users, label: "Users" },
+    { path: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard", roles: ["admin", "superadmin"] },
+    { path: "/admin/users", icon: Users, label: isSuperAdmin() ? "All Users" : "Redeem", roles: ["admin", "superadmin"] },
   ];
 
-  const currentPage =
-    menuItems.find((i) => i.path === location.pathname)?.label || "Admin Panel";
+  const currentPage = menuItems.find((i) => i.path === location.pathname)?.label || "Admin Panel";
 
   return (
     <div className="h-screen flex overflow-hidden bg-gray-50">
@@ -41,9 +44,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
           fixed lg:static inset-y-0 left-0 z-50
           w-64 bg-linear-to-b from-amber-900 via-amber-950 to-slate-900 text-white
           transform transition-transform duration-300 ease-in-out
-          ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-          }
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           flex flex-col
         `}
       >
@@ -58,8 +59,18 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
           </button>
         </div>
 
+        {/* Role Badge */}
+        <div className="px-4 pt-4 pb-2">
+          <div className="bg-amber-800/30 rounded-lg px-3 py-2 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-amber-300" />
+            <span className="text-sm text-amber-100 font-medium">
+              {role === "superadmin" ? "Super Admin" : "Admin"}
+            </span>
+          </div>
+        </div>
+
         {/* Menu */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto ">
+        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -87,7 +98,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
             onClick={handleLogout}
             className="cursor-pointer flex items-center gap-3 px-4 py-3 w-full hover:bg-red-600/90 rounded-lg transition-colors"
           >
-            <LogOut className="w-5 h-5 shrink-0 " />
+            <LogOut className="w-5 h-5 shrink-0" />
             <span>Logout</span>
           </button>
         </div>
@@ -111,7 +122,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-gray-800 font-semibold text-xs sm:text-sm">
-              Welcome, Admin
+              {role === "superadmin" ? "Welcome, Super Admin" : "Welcome, Admin"}
             </span>
           </div>
         </header>

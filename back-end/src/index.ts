@@ -12,11 +12,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Import routes
 app.use("/api", spinRoutes);
 app.use("/api/admin", adminRoutes);
 
-// Connect DB and start server
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

@@ -2,19 +2,21 @@ import { useState, useEffect, useRef } from "react";
 import api from "../../utils/axios";
 import { toast } from "react-hot-toast";
 import { extractErrorMessages } from "../../utils/extractErrorMessages";
+import { isSuperAdmin } from "../../utils/roleCheck";
 
 export interface User {
-  _id: string;
+  _id?: string;
   uid: string;
   name: string;
-  phone: string;
-  dobOrAnniversary: string;
-  createdAt: string;
+  phone?: string;
+  dobOrAnniversary?: string;
+  createdAt?: string;
   hasSpun: boolean;
   prize: string | null;
-  spinTime: string | null;
+  spinTime?: string | null;
   redeemed: boolean;
-  redemptionTime: string | null;
+  redemptionTime?: string | null;
+  hasPrize?: boolean;
 }
 
 export interface Pagination {
@@ -34,16 +36,16 @@ export const useUsers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-  
+
   const hasFetchedRef = useRef(false);
   const currentSearchRef = useRef("");
   const currentPageRef = useRef(1);
+  const isSuper = isSuperAdmin();
 
   const fetchUsers = async (page = 1, searchQuery = "", forceRefetch = false) => {
     const cacheKey = `${page}-${searchQuery}`;
     const currentCache = `${currentPageRef.current}-${currentSearchRef.current}`;
-    
-    // Skip if already loaded same data
+
     if (hasFetchedRef.current && cacheKey === currentCache && !forceRefetch) {
       setLoading(false);
       return;
@@ -53,10 +55,13 @@ export const useUsers = () => {
       setLoading(true);
       setError("");
 
-      const res = await api.get(`/admin/users?page=${page}&search=${searchQuery}`);
+      // Call different endpoint based on role
+      const endpoint = isSuper ? "/admin/users" : "/admin/users/redeem";
+      const res = await api.get(`${endpoint}?page=${page}&search=${searchQuery}`);
+      
       setUsers(res.data.users);
       setPagination(res.data.pagination);
-      
+
       hasFetchedRef.current = true;
       currentSearchRef.current = searchQuery;
       currentPageRef.current = page;
@@ -91,12 +96,11 @@ export const useUsers = () => {
   const handleRedeem = async (uid: string) => {
     try {
       setActionLoading(true);
-      
-      // ✅ Optimistic update - instant UI feedback
-      setUsers(prevUsers =>
-        prevUsers.map(user =>
-          user.uid === uid 
-            ? { ...user, redeemed: true, redemptionTime: new Date().toISOString() } 
+
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.uid === uid
+            ? { ...user, redeemed: true, redemptionTime: new Date().toISOString() }
             : user
         )
       );
@@ -104,7 +108,6 @@ export const useUsers = () => {
       await api.post("/admin/redeem", { uid });
       toast.success("Prize marked as redeemed");
     } catch (err: any) {
-      // ❌ Revert on error
       fetchUsers(currentPage, search, true);
       toast.error(extractErrorMessages(err) || "Failed to redeem");
     } finally {
@@ -116,27 +119,23 @@ export const useUsers = () => {
     const previousUsers = [...users];
     try {
       setActionLoading(true);
-      
-      // ✅ Optimistic update - instant removal from UI
-      setUsers(prevUsers => prevUsers.filter(user => user.uid !== uid));
-      
-      // Update pagination count
+
+      setUsers((prevUsers) => prevUsers.filter((user) => user.uid !== uid));
+
       if (pagination) {
         setPagination({
           ...pagination,
-          totalUsers: pagination.totalUsers - 1
+          totalUsers: pagination.totalUsers - 1,
         });
       }
 
       await api.delete(`/admin/users/${uid}`);
       toast.success("User deleted successfully");
-      
-      // If page is now empty and not first page, go back
+
       if (users.length === 1 && currentPage > 1) {
-        setCurrentPage(prev => prev - 1);
+        setCurrentPage((prev) => prev - 1);
       }
     } catch (err: any) {
-      // ❌ Revert on error
       setUsers(previousUsers);
       toast.error(extractErrorMessages(err) || "Failed to delete user");
     } finally {
@@ -159,5 +158,6 @@ export const useUsers = () => {
     handleRedeem,
     handleDelete,
     actionLoading,
+    isSuper,
   };
 };

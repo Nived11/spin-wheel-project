@@ -9,7 +9,6 @@ export const useDashboardStats = () => {
   const hasFetchedRef = useRef(false);
 
   const fetchStats = async (forceRefetch = false) => {
-    // Skip if already fetched
     if (hasFetchedRef.current && !forceRefetch) {
       setLoading(false);
       return;
@@ -18,7 +17,10 @@ export const useDashboardStats = () => {
     try {
       setLoading(true);
       setError("");
+      
+      // Both roles use same endpoint now
       const res = await api.get("/admin/stats");
+      
       setStats(res.data);
       hasFetchedRef.current = true;
     } catch (err: any) {
@@ -33,10 +35,10 @@ export const useDashboardStats = () => {
     fetchStats();
   }, []);
 
-  return { 
-    stats, 
-    loading, 
-    error, 
-    refetch: () => fetchStats(true) 
+  return {
+    stats,
+    loading,
+    error,
+    refetch: () => fetchStats(true),
   };
 };

@@ -15,7 +15,8 @@ export const useAdminLogin = () => {
   // Redirect if already logged in
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
-    if (token) {
+    const role = localStorage.getItem("adminRole");
+    if (token && role) {
       navigate("/admin/dashboard", { replace: true });
     }
   }, [navigate]);
@@ -28,14 +29,15 @@ export const useAdminLogin = () => {
     try {
       const response = await api.post("/admin/login", { username, password });
 
-      const token = response.data.token;
+      const { token, role } = response.data;
+      
+      // Store token and role
       localStorage.setItem("adminToken", token);
-      toast.success("Login successful!");
+      localStorage.setItem("adminRole", role);
+      
+      toast.success(`Welcome ${role === "superadmin" ? "Super Admin" : "Admin"}!`);
 
       navigate("/admin/dashboard", { replace: true });
-
-
-
     } catch (err: any) {
       const message = extractErrorMessages(err);
       setError(message || "Failed to login");
