@@ -190,6 +190,12 @@ const DemoForm = () => {
               </div>
 
               <div className="flex gap-3">
+                <button
+                  onClick={closePopup}
+                  className="flex-1 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
                 <a
                   href={link}
                   target="_blank"
@@ -198,12 +204,6 @@ const DemoForm = () => {
                 >
                   Open Link
                 </a>
-                <button
-                  onClick={closePopup}
-                  className="flex-1 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors cursor-pointer"
-                >
-                  Close
-                </button>
               </div>
 
             </div>
@@ -211,10 +211,6 @@ const DemoForm = () => {
           </div>
         </div>
       )}
-
-      <style>{`
-        
-      `}</style>
     </div>
   );
 };

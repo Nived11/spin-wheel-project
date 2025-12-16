@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import SpinPage from "../Pages/Users/SpinPage";
 import InvalidPage from "../Pages/Users/InvalidPage";
-import DemoForm from "../Pages/Users/DemoForm";
+import RegisterForm from "../Pages/Users/RegisterForm";
 import AdminLogin from "../Pages/Admin/AdminLogin";
 import AdminDashboard from "../Pages/Admin/AdminDashboard";
 import DashboardHome from "../Pages/Admin/DashboardHome";
@@ -11,7 +11,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 const AppRoutes = () => (
   <Routes>
     {/* Public Routes */}
-    <Route path="/" element={<DemoForm />} />
+    <Route path="/" element={<RegisterForm />} />
     <Route path="/spin" element={<SpinPage />} />
     <Route path="/invalid" element={<InvalidPage />} />
 

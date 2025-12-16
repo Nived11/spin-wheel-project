@@ -3,21 +3,22 @@ import User from "../models/User";
 import Spin from "../models/Spin";
 import { v4 as uuidv4 } from "uuid";
 
+// Updated prize distribution
 const prizes = [
-  { prize: "Free Full Mandi", weight: 1 },
-  { prize: "20% OFF", weight: 4 },
-  { prize: "10% OFF", weight: 10 },
-  { prize: "Free Lime Juice", weight: 10 },
-  { prize: "5% OFF", weight: 10 },
-  { prize: "Better Luck Next Time", weight: 65 }
+  { prize: "Better Luck Next Time", weight: 74 },
+  { prize: "Pepsi 200ml", weight: 10 },
+  { prize: "5% OFF", weight: 5 },
+  { prize: "Watermelon Juice", weight: 5 },
+  { prize: "Gift", weight: 3 },
+  { prize: "10% OFF", weight: 2 },
+  { prize: "Free Full Mandi", weight: 1 }
 ];
-
 
 // Create unique UID
 export const createUID = async (req: Request, res: Response) => {
   const { name, phone, dobOrAnniversary } = req.body;
 
-  // simple validations
+  // Simple validations
   if (!name || name.trim().length < 3) {
     return res.status(400).json({ msg: "Name must be at least 3 characters" });
   }
@@ -52,8 +53,6 @@ export const createUID = async (req: Request, res: Response) => {
   res.json({ uid, link });
 };
 
-
-
 // Validate UID
 export const validateUID = async (req: Request, res: Response) => {
   const { uid } = req.query;
@@ -77,6 +76,9 @@ function choosePrize() {
     sum += p.weight;
     if (random <= sum) return p;
   }
+  
+  // Fallback to first prize
+  return prizes[0];
 }
 
 // Spin logic
@@ -89,7 +91,20 @@ export const spinWheel = async (req: Request, res: Response) => {
   const used = await Spin.findOne({ uid });
   if (used) return res.status(400).json({ msg: "Already spin" });
 
-  const result = choosePrize();
+  // Count total spins to determine position
+  const spinCount = await Spin.countDocuments();
+  const currentPosition = spinCount + 1; // This user's position
+
+  let result;
+  
+  // Check if this is the 50th user
+  if (currentPosition === 50) {
+    // Force "Free Full Mandi" for 50th user
+    result = prizes.find(p => p.prize === "Free Full Mandi");
+  } else {
+    // Regular weighted random for all other users
+    result = choosePrize();
+  }
 
   await Spin.create({
     uid,
@@ -97,8 +112,23 @@ export const spinWheel = async (req: Request, res: Response) => {
     probability: result!.weight,
   });
 
-  // For demo (simulate WhatsApp)
-  console.log(`Send WhatsApp: Congrats ${user.name}, you won ${result!.prize}`);
 
   res.json({ prize: result!.prize });
+};
+
+// Get user details for certificate
+export const getUserDetails = async (req: Request, res: Response) => {
+  const { uid } = req.query;
+
+  const user = await User.findOne({ uid });
+  if (!user) return res.status(404).json({ msg: "User not found" });
+
+  const spin = await Spin.findOne({ uid });
+
+  res.json({
+    name: user.name,
+    phone: user.phone,
+    prize: spin?.prize || null,
+    uid: user.uid,
+  });
 };
