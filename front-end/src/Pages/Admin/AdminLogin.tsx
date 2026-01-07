@@ -34,7 +34,7 @@ const AdminLogin = () => {
               <h1 className="text-3xl font-bold bg-linear-to-r from-amber-800 to-slate-800 bg-clip-text text-transparent mb-2">
                 Admin Portal
               </h1>
-              <p className="text-gray-600 font-medium">Empire Plaza Spin Wheel</p>
+              <p className="text-gray-600 font-medium">Find Fortune Spin Wheel</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-5">

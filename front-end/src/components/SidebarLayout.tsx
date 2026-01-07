@@ -50,7 +50,7 @@ const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       >
         {/* Logo */}
         <div className="p-6 flex items-center justify-between border-b border-amber-800/30">
-          <h2 className="text-xl font-bold text-amber-50">Empire Plaza</h2>
+          <h2 className="text-xl font-bold text-amber-50">Admin Panel</h2>
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden p-2 hover:bg-amber-800/30 rounded-lg transition-colors"
