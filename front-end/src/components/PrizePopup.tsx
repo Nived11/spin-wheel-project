@@ -1,7 +1,8 @@
 import { Download } from "lucide-react";
+import { type Prize } from "../constants/prizes";
 
 interface PrizePopupProps {
-  prize: string;
+  prize: Prize;
   uid: string;
   isWinner: boolean;
   downloading: boolean;
@@ -18,9 +19,9 @@ const PrizePopup = ({
   onDownload,
 }: PrizePopupProps) => {
   return (
-  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
 
-      <div className="bg-gradient-to-br from-amber-800 to-amber-950 p-8 rounded-2xl shadow-2xl max-w-md w-full border-4 border-yellow-500">
+      <div className="bg-gradient-to-br from-red-900 to-red-950 p-8 rounded-2xl shadow-2xl max-w-md w-full border-4 border-yellow-500">
 
         {/* Title */}
         <h2 className="text-3xl font-bold text-yellow-300 mb-4 text-center">
@@ -71,7 +72,7 @@ const PrizePopup = ({
           onClick={onClose}
           className="w-full bg-transparent border-2 border-yellow-500
             hover:bg-yellow-800 hover:text-white
-            text-yellow-300 font-bold py-3 px-6 rounded-lg transition"
+            text-yellow-300 font-bold py-3 px-6 rounded-lg transition cursor-pointer"
         >
           Close
         </button>

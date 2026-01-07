@@ -3,22 +3,25 @@ import User from "../models/User";
 import Spin from "../models/Spin";
 import { v4 as uuidv4 } from "uuid";
 
-// Updated prize distribution
-const prizes = [
-  { prize: "Better Luck Next Time", weight: 74 },
-  { prize: "Pepsi 200ml", weight: 10 },
-  { prize: "5% OFF", weight: 5 },
-  { prize: "Watermelon Juice", weight: 5 },
-  { prize: "Gift", weight: 3 },
-  { prize: "10% OFF", weight: 2 },
-  { prize: "Free Full Mandi", weight: 1 }
-];
+// ✅ UPDATED: All physical prizes, no coupons - Better Luck increased to 80%
+const PRIZE_CONFIG = [
+  { prize: "Better Luck Next Time", weight: 80 },
+  { prize: "Wireless Earbuds", weight: 8 },
+  { prize: "Gaming Mouse", weight: 4 },
+  { prize: "Smartwatch", weight: 3 },
+  { prize: "Power Bank", weight: 2 },
+  { prize: "Gaming Keyboard", weight: 1.5 },
+  { prize: "Tablet", weight: 1 },
+  { prize: "iPhone 16 Pro", weight: 0.5 }
+] as const;
+
+const SPECIAL_PRIZE_POSITION = 100;
+const SPECIAL_PRIZE_NAME = "iPhone 16 Pro";
 
 // Create unique UID
 export const createUID = async (req: Request, res: Response) => {
   const { name, phone, dobOrAnniversary } = req.body;
 
-  // Simple validations
   if (!name || name.trim().length < 3) {
     return res.status(400).json({ msg: "Name must be at least 3 characters" });
   }
@@ -27,7 +30,6 @@ export const createUID = async (req: Request, res: Response) => {
     return res.status(400).json({ msg: "Phone must be 10 digits" });
   }
 
-  // Validate date
   if (!dobOrAnniversary || !dobOrAnniversary.includes(":")) {
     return res.status(400).json({ msg: "Date is required" });
   }
@@ -57,78 +59,106 @@ export const createUID = async (req: Request, res: Response) => {
 export const validateUID = async (req: Request, res: Response) => {
   const { uid } = req.query;
 
+  if (!uid) {
+    return res.status(400).json({ valid: false, msg: "UID is required" });
+  }
+
   const user = await User.findOne({ uid });
-  if (!user) return res.status(400).json({ valid: false, msg: "Invalid UID" });
+  if (!user) {
+    return res.status(400).json({ valid: false, msg: "Invalid UID" });
+  }
 
   const used = await Spin.findOne({ uid });
-  if (used) return res.status(400).json({ valid: false, msg: "UID already used" });
+  if (used) {
+    return res.status(400).json({ valid: false, msg: "UID already used" });
+  }
 
   res.json({ valid: true });
 };
 
 // Weighted prize generator
 function choosePrize() {
-  const total = prizes.reduce((acc, p) => acc + p.weight, 0);
+  const total = PRIZE_CONFIG.reduce((acc, p) => acc + p.weight, 0);
   const random = Math.random() * total;
 
   let sum = 0;
-  for (const p of prizes) {
+  for (const p of PRIZE_CONFIG) {
     sum += p.weight;
     if (random <= sum) return p;
   }
   
-  // Fallback to first prize
-  return prizes[0];
+  return PRIZE_CONFIG[0];
 }
 
 // Spin logic
 export const spinWheel = async (req: Request, res: Response) => {
-  const { uid } = req.body;
+  try {
+    const { uid } = req.body;
 
-  const user = await User.findOne({ uid });
-  if (!user) return res.status(400).json({ msg: "Invalid UID" });
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ msg: "Invalid UID" });
+    }
 
-  const used = await Spin.findOne({ uid });
-  if (used) return res.status(400).json({ msg: "Already spin" });
+    const existingSpin = await Spin.findOne({ uid });
+    if (existingSpin) {
+      return res.status(400).json({ msg: "Already spin" });
+    }
 
-  // Count total spins to determine position
-  const spinCount = await Spin.countDocuments();
-  const currentPosition = spinCount + 1; // This user's position
+    const spinCount = await Spin.countDocuments();
+    const currentPosition = spinCount + 1;
 
-  let result;
-  
-  // Check if this is the 50th user
-  if (currentPosition === 50) {
-    // Force "Free Full Mandi" for 50th user
-    result = prizes.find(p => p.prize === "Free Full Mandi");
-  } else {
-    // Regular weighted random for all other users
-    result = choosePrize();
+    let result;
+    
+    if (currentPosition === SPECIAL_PRIZE_POSITION) {
+      result = PRIZE_CONFIG.find(p => p.prize === SPECIAL_PRIZE_NAME);
+      
+      if (!result) {
+        result = { prize: SPECIAL_PRIZE_NAME, weight: 0 };
+      }
+    } else {
+      result = choosePrize();
+    }
+
+    await Spin.create({
+      uid,
+      prize: result.prize,
+      probability: result.weight,
+    });
+
+    res.json({ prize: result.prize });
+    
+  } catch (error) {
+    console.error("Spin error:", error);
+    res.status(500).json({ msg: "Server error during spin" });
   }
-
-  await Spin.create({
-    uid,
-    prize: result!.prize,
-    probability: result!.weight,
-  });
-
-
-  res.json({ prize: result!.prize });
 };
 
 // Get user details for certificate
 export const getUserDetails = async (req: Request, res: Response) => {
-  const { uid } = req.query;
+  try {
+    const { uid } = req.query;
 
-  const user = await User.findOne({ uid });
-  if (!user) return res.status(404).json({ msg: "User not found" });
+    if (!uid) {
+      return res.status(400).json({ msg: "UID is required" });
+    }
 
-  const spin = await Spin.findOne({ uid });
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
 
-  res.json({
-    name: user.name,
-    phone: user.phone,
-    prize: spin?.prize || null,
-    uid: user.uid,
-  });
+    const spin = await Spin.findOne({ uid });
+
+    res.json({
+      name: user.name,
+      phone: user.phone,
+      prize: spin?.prize || null,
+      uid: user.uid,
+    });
+    
+  } catch (error) {
+    console.error("Get user details error:", error);
+    res.status(500).json({ msg: "Server error" });
+  }
 };

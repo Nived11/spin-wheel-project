@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../utils/axios";
 import toast from "react-hot-toast";
+import {type  Prize } from "../../constants/prizes";
+
 
 interface UserData {
   name: string;
@@ -16,7 +18,7 @@ export const useSpin = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [spinning, setSpinning] = useState(false);
-  const [prize, setPrize] = useState<string | null>(null);
+const [prize, setPrize] = useState<Prize | null>(null);
 
   useEffect(() => {
     const qUid = searchParams.get("uid");
@@ -52,7 +54,7 @@ export const useSpin = () => {
     setSpinning(true);
     try {
       const res = await api.post("/spin", { uid });
-      const p = res.data.prize as string;
+     const p = res.data.prize as Prize;
       setPrize(p);
       return p;
     } catch (e: any) {
