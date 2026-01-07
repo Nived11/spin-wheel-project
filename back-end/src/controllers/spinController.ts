@@ -12,11 +12,11 @@ const PRIZE_CONFIG = [
   { prize: "Power Bank", weight: 2 },
   { prize: "Gaming Keyboard", weight: 1.5 },
   { prize: "Tablet", weight: 1 },
-  { prize: "iPhone 16 Pro", weight: 0.5 }
+  { prize: "iPhone 17 Pro", weight: 0.5 }
 ] as const;
 
-const SPECIAL_PRIZE_POSITION = 100;
-const SPECIAL_PRIZE_NAME = "iPhone 16 Pro";
+const SPECIAL_PRIZE_POSITION = 20;
+const SPECIAL_PRIZE_NAME = "iPhone 17 Pro";
 
 // Create unique UID
 export const createUID = async (req: Request, res: Response) => {
