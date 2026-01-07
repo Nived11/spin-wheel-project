@@ -6,9 +6,7 @@ import SpinWheel from "../../components/SpinWheel";
 import PrizePopup from "../../components/PrizePopup";
 import { Loader2 } from "lucide-react";
 import { PRIZE_SEGMENTS } from "../../constants/prizes";
-
-// ✅ Import ONLY the left gift box image
-import giftBox from "../../assets/lftbox.png"; 
+import giftBox from "../../assets/boxtheme.png"; 
 
 const segments = PRIZE_SEGMENTS;
 
@@ -24,7 +22,7 @@ const SpinPage = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-900 via-red-950 to-slate-900 text-white">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-900 via-red-950 to-red-900 text-white">
         <Loader2 color="#FFD700" size={50} className="animate-spin" />
         <p className="mt-4 text-lg">Validating link...</p>
       </div>

@@ -1,6 +1,6 @@
 const InvalidPage = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-amber-900 via-amber-950 to-slate-900 text-white px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-red-900 via-red-950 to-red-900 text-white px-4">
       
       {/* Icon */}
       <div className="text-red-400 text-7xl mb-6 animate-bounce">
