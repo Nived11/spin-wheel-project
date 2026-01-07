@@ -9,6 +9,7 @@ import powerbank from "../assets/powerbank.png"
 import keyboard from "../assets/keyboard.png"
 import tablet from "../assets/tablet.png"
 import betterluck from "../assets/better.webp"
+
 const placeholderImg = "https://cdn-icons-png.flaticon.com/512/6124/6124997.png"; 
 
 const prizeImages: Record<string, string> = {
@@ -45,38 +46,19 @@ function getArc(i: number, total: number) {
   return `M ${cx} ${cy} L ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2} Z`;
 }
 
-// ✅ HELPER: Splits long text into max 2 lines
-const BreakText = ({ text, x, y, color }: { text: string; x: number; y: number; color: string }) => {
-  const words = text.split(" ");
-  let lines = [];
-  
-  if (words.length > 2 || text.length > 12) {
-    // Split into 2 lines roughly in the middle
-    const mid = Math.ceil(words.length / 2);
-    lines = [words.slice(0, mid).join(" "), words.slice(mid).join(" ")];
-  } else {
-    lines = [text];
-  }
-
-  return (
-    <text
-      x={x}
-      y={y}
-      textAnchor="middle"
-      dominantBaseline="middle"
-      fontSize={lines.length > 1 ? 11 : 13} // Smaller font for 2 lines
-      fontWeight="900"
-      fill={color}
-      style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
-    >
-      {lines.map((line, index) => (
-        <tspan key={index} x={x} dy={index === 0 ? 0 : 14}> {/* Move 2nd line down */}
-          {line}
-        </tspan>
-      ))}
-    </text>
-  );
-};
+// ✅ Helper to create a curved path at a specific radius
+function getCurvedPath(i: number, total: number, radius: number) {
+  const cx = 250, cy = 250;
+  const angleStart = (360 / total) * i - 90;
+  const angleEnd = (360 / total) * (i + 1) - 90;
+  const radStart = (Math.PI / 180) * angleStart;
+  const radEnd = (Math.PI / 180) * angleEnd;
+  const x1 = cx + Math.cos(radStart) * radius;
+  const y1 = cy + Math.sin(radStart) * radius;
+  const x2 = cx + Math.cos(radEnd) * radius;
+  const y2 = cy + Math.sin(radEnd) * radius;
+  return `M ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2}`;
+}
 
 const SpinWheel = ({ rotation, isSpinning, isFastSpinning, hasSpun, onSpin }: SpinWheelProps) => {
   return (
@@ -96,16 +78,15 @@ const SpinWheel = ({ rotation, isSpinning, isFastSpinning, hasSpun, onSpin }: Sp
           <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#FFFACD" /><stop offset="30%" stopColor="#FFD700" /><stop offset="60%" stopColor="#ffca1ed2" /><stop offset="100%" stopColor="#B8860B" />
           </linearGradient>
-          <filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-          <radialGradient id="bulbGradient"><stop offset="0%" stopColor="#ffffffff" stopOpacity="0.8"/><stop offset="50%" stopColor="#f9ce50f0" stopOpacity="0.6"/><stop offset="100%" stopColor="#f39821ff" stopOpacity="0"/></radialGradient>
         </defs>
 
         <circle cx="250" cy="250" r="240" fill="none" stroke="#fda900ff" strokeWidth="20" />
 
+        {/* Static Bulbs (Lag Free) */}
         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) => {
           const angle = i * 30 * (Math.PI / 180);
           const x = 250 + Math.cos(angle) * 240, y = 250 + Math.sin(angle) * 240;
-          return <g key={i}><circle cx={x} cy={y} r="14" fill="url(#bulbGradient)" opacity="0.8" filter="url(#glow)"><animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" begin={`${i * 0.125}s`} /></circle><circle cx={x} cy={y} r="8" fill="#FFFACD" stroke="#ffd15dff" strokeWidth="2"><animate attributeName="fill" values="#FFFACD;#FFFFFF;#FFFACD" dur="1.5s" repeatCount="indefinite" begin={`${i * 0.125}s`} /></circle><circle cx={x - 2} cy={y - 2} r="3" fill="#FFFFFF" opacity="0.9" /></g>;
+          return <g key={i}><circle cx={x} cy={y} r="8" fill="#FFFACD" stroke="#ffd15dff" strokeWidth="2" /><circle cx={x - 2} cy={y - 2} r="3" fill="#FFFFFF" opacity="0.6" /></g>;
         })}
 
         {segments.map((label, i) => {
@@ -114,22 +95,56 @@ const SpinWheel = ({ rotation, isSpinning, isFastSpinning, hasSpun, onSpin }: Sp
           const textColor = isGold ? "#8B0000" : "#FFFFFF";
           const angle = (360 / segments.length) * i + (360 / segments.length) / 2;
 
+          // Check if text is long (needs splitting)
+          const isLongText = label.length > 15;
+          const words = label.split(" ");
+          const mid = Math.ceil(words.length / 2);
+          const line1 = isLongText ? words.slice(0, mid).join(" ") : label;
+          const line2 = isLongText ? words.slice(mid).join(" ") : "";
+
+          // Unique IDs for paths
+          const pathId1 = `textPath-${i}-1`;
+          const pathId2 = `textPath-${i}-2`;
+
           return (
             <g key={i}>
               <path d={getArc(i, segments.length)} fill={fillColor} stroke="#B8860B" strokeWidth="2" />
+              
+              {/* ✅ CURVED TEXT LOGIC */}
+              {isLongText ? (
+                <>
+                  {/* Line 1 (Outer Curve) */}
+                  <path id={pathId1} d={getCurvedPath(i, segments.length, 182)} fill="none" stroke="none" />
+                  <text fontSize={11} fontWeight="900" fill={textColor} style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>
+                    <textPath href={`#${pathId1}`} startOffset="50%" textAnchor="middle">{line1}</textPath>
+                  </text>
+
+                  {/* Line 2 (Inner Curve) */}
+                  <path id={pathId2} d={getCurvedPath(i, segments.length, 168)} fill="none" stroke="none" />
+                  <text fontSize={11} fontWeight="900" fill={textColor} style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>
+                    <textPath href={`#${pathId2}`} startOffset="50%" textAnchor="middle">{line2}</textPath>
+                  </text>
+                </>
+              ) : (
+                <>
+                  {/* Single Line (Middle Curve) */}
+                  <path id={pathId1} d={getCurvedPath(i, segments.length, 175)} fill="none" stroke="none" />
+                  <text fontSize={13} fontWeight="900" fill={textColor} style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>
+                    <textPath href={`#${pathId1}`} startOffset="50%" textAnchor="middle">{line1}</textPath>
+                  </text>
+                </>
+              )}
+              
+              {/* Image (Pushed down if text is long) */}
               <g transform={`rotate(${angle}, 250, 250)`}>
-                {/* ✅ Use Custom BreakText Component */}
-                <BreakText text={label} x={250} y={85} color={textColor} />
-                
-                {/* Image */}
-                <image
-                  href={prizeImages[label] || placeholderImg}
-                  x={250 - 20}
-                  y={125} // Pushed image down slightly to make room for 2 lines
-                  width="40"
-                  height="40"
-                  preserveAspectRatio="xMidYMid meet"
-                />
+                 <image
+                   href={prizeImages[label] || placeholderImg}
+                   x={250 - 20}
+                   y={isLongText ? 115 : 110} // Push down more if 2 lines
+                   width="40"
+                   height="40"
+                   preserveAspectRatio="xMidYMid meet"
+                 />
               </g>
             </g>
           );
